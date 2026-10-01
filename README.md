@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 # TechNova
 
 TechNova is a team-based technology competition platform. Organizers manage teams, day-wise rounds, tests, resources, verification, scoring, and event information. Teams use a dashboard to follow the event, submit task completion for review, access released materials, manage candidate profile links, and track their standing.
@@ -174,5 +174,4 @@ package.json            Root install, development, build, and start scripts
 - The rank cache is process-local. If running multiple API instances, ranks can differ briefly between instances; use a shared cache if strict cross-instance consistency is needed.
 - Capacity depends on the Node host, MongoDB tier, network latency, upload storage, and number of simultaneous users. Load-test against the intended production services before promising a concurrency target.
 =======
-# TechNova
->>>>>>> ba6ef893251445087c34eeac91c60ef7df69169c
+
