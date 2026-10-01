@@ -13,6 +13,14 @@ export const Admin = model(
   })
 );
 
+const adminHistorySchema = new Schema({
+  admin: ref('Admin'),
+  action: { type: String, required: true },
+  detail: { type: String, default: '' },
+}, { timestamps: true });
+adminHistorySchema.index({ createdAt: -1 });
+export const AdminHistory = model('AdminHistory', adminHistorySchema);
+
 // ---- Teams (name is unique, case-insensitive) ----
 const teamSchema = new Schema(
   {
@@ -229,6 +237,8 @@ export const CentralResource = model(
       type: { type: String, enum: ['pdf', 'document', 'link'], required: true },
       category: { type: String, enum: ['test', 'shared'], required: true },
       url: { type: String, required: true },
+      description: { type: String, default: '', trim: true },
+      problemUrl: { type: String, default: '', trim: true },
       fileName: { type: String, default: '' },
       storedName: { type: String, default: '' },
       isReleased: { type: Boolean, default: false },

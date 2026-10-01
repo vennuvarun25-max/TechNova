@@ -111,7 +111,7 @@ export default function AdminVerification() {
       <p className="muted">Review tasks by team and round before awarding XP.</p>
       <Alert>{err}</Alert>
 
-      <div className="card row wrap">
+      <div className="card row wrap verification-toolbar">
         <label className="inline">Team
           <select value={team} onChange={(e) => { e.target.value ? setParams({ team: e.target.value }) : setParams({}); }}>
             <option value="">All teams</option>

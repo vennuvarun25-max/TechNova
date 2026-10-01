@@ -2,10 +2,10 @@ import { NavLink, Outlet } from 'react-router-dom';
 import { useAuth } from './auth.jsx';
 
 const ADMIN_LINKS = [
-  ['', 'Dashboard'], ['/teams', 'Teams'], ['/rounds', 'Rounds'], ['/projects', 'Projects'],
-  ['/verification', 'XP & Verification'], ['/access', 'Access'], ['/timer', 'Timer'], ['/central-resources', 'Central Resources'], ['/leaderboard', 'Leaderboard'], ['/about', 'About'],
+  ['', 'Dashboard', 'dashboard'], ['/teams', 'Teams', 'teams'], ['/team-details', 'Team Details', 'teams'], ['/rounds', 'Rounds', 'rounds'], ['/projects', 'Projects', 'projects'],
+  ['/verification', 'XP & Verification', 'verification'], ['/access', 'Access', 'access'], ['/timer', 'Timer', 'timer'], ['/history', 'History', 'history'], ['/central-resources', 'Central Resources', 'resources'], ['/leaderboard', 'Leaderboard', 'leaderboard'], ['/about', 'About', 'about'],
 ];
-const TEAM_LINKS = [['', 'Dashboard'], ['/rounds', 'Rounds'], ['/projects', 'Projects'], ['/team-progress', 'Team Progress'], ['/central-resources', 'Central Resources'], ['/leaderboard', 'Leaderboard'], ['/about', 'About']];
+const TEAM_LINKS = [['', 'Dashboard', 'dashboard'], ['/rounds', 'Rounds', 'rounds'], ['/projects', 'Projects', 'projects'], ['/team-progress', 'Team Progress', 'team-progress'], ['/central-resources', 'Central Resources', 'resources'], ['/leaderboard', 'Leaderboard', 'leaderboard'], ['/about', 'About', 'about']];
 
 export default function Layout() {
   const { user, logout } = useAuth();
@@ -19,8 +19,8 @@ export default function Layout() {
         <div className="topbar-inner">
           <span className="brand"><span className="logo" aria-hidden="true">T</span>TechNova</span>
           <nav aria-label="Main">
-            {links.map(([to, label]) => (
-              <NavLink key={label} to={base + to || '/'} end={to === ''} className={label === 'About' ? 'about-link' : undefined}>{label}</NavLink>
+            {links.map(([to, label, icon]) => (
+              <NavLink key={label} to={base + to || '/'} end={to === ''} data-nav-icon={icon} className={label === 'About' ? 'about-link' : undefined}>{label}</NavLink>
             ))}
           </nav>
           <div className="user">

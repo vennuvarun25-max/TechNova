@@ -6,6 +6,7 @@ import AdminLogin from './pages/AdminLogin.jsx';
 import LeaderboardPage from './pages/LeaderboardPage.jsx';
 import AdminDashboard from './pages/admin/AdminDashboard.jsx';
 import AdminTeams from './pages/admin/AdminTeams.jsx';
+import AdminTeamDetails from './pages/admin/AdminTeamDetails.jsx';
 import TeamProgress from './pages/admin/TeamProgress.jsx';
 import AdminRounds from './pages/admin/AdminRounds.jsx';
 import AdminRoundManage from './pages/admin/AdminRoundManage.jsx';
@@ -24,6 +25,7 @@ import StudentProjects from './pages/student/StudentProjects.jsx';
 import StudentCentralResources from './pages/student/StudentCentralResources.jsx';
 import AboutPage from './pages/student/AboutPage.jsx';
 import AdminAbout from './pages/admin/AdminAbout.jsx';
+import AdminHistory from './pages/admin/AdminHistory.jsx';
 
 function Protected({ role, children }) {
   const { user, loading } = useAuth();
@@ -45,7 +47,7 @@ export default function App() {
       <Route path="/admin" element={<Protected role="admin"><Layout /></Protected>}>
         <Route index element={<AdminDashboard />} />
         <Route path="teams" element={<AdminTeams />} />
-        <Route path="team-details" element={<AdminTeams />} />
+        <Route path="team-details" element={<AdminTeamDetails />} />
         <Route path="teams/:id" element={<TeamProgress />} />
         <Route path="rounds" element={<AdminRounds />} />
         <Route path="rounds/:id" element={<AdminRoundManage />} />
@@ -55,6 +57,7 @@ export default function App() {
         <Route path="verification" element={<AdminVerification />} />
         <Route path="access" element={<AdminAccess />} />
         <Route path="timer" element={<AdminTimer />} />
+        <Route path="history" element={<AdminHistory />} />
         <Route path="leaderboard" element={<LeaderboardPage />} />
       </Route>
 

@@ -35,7 +35,7 @@ export default function AdminProjects() {
       <div className="page-head">
         <div>
           <p className="eyebrow tests-tag">Project Showcase</p>
-          <h2>All teams' projects</h2>
+          <h2>Projects from All Teams</h2>
         </div>
       </div>
 

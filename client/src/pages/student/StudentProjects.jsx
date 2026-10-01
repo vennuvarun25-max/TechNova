@@ -62,7 +62,7 @@ function ProjectForm({ initial, onCancel, onSaved, meMembers }) {
         {meMembers.length > 0 && (
           <button type="button" className="btn small secondary" style={{ marginLeft: '.6rem', marginTop: '-.2rem' }} onClick={useTeamRoster}>Use my team roster</button>
         )}
-        <input value={form.members} onChange={(e) => setForm({ ...form, members: e.target.value })} placeholder="Asha, Ravi, Priya" />
+        <input value={form.members} onChange={(e) => setForm({ ...form, members: e.target.value })} placeholder="e.g. Jordan Lee, Casey Morgan" />
       </label>
       <div className="row" style={{ marginTop: '.4rem' }}>
         <button className="btn" disabled={saving}>{saving ? 'Saving…' : form._id ? 'Save changes' : 'Add project'}</button>

@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 import fs from 'fs';
 import path from 'path';
 import { auth, requireRole } from '../middleware/auth.js';
-import { AboutContent, Team, TeamMember, Round, Task, Resource, CentralResource, Completion, XPRecord, Member, HintAccess, HintAudit, XPTransaction, Project } from '../models/index.js';
+import { AboutContent, AdminHistory, Team, TeamMember, Round, Task, Resource, CentralResource, Completion, XPRecord, Member, HintAccess, HintAudit, XPTransaction, Project } from '../models/index.js';
 import { h, httpError, isHttpUrl } from '../utils/helpers.js';
 import { upload, UPLOAD_DIR } from '../utils/uploads.js';
 import { timerAction } from '../utils/timer.js';
@@ -13,6 +13,50 @@ import { serializeAbout } from '../utils/about.js';
 
 const r = Router();
 r.use(auth, requireRole('admin'));
+
+function describeAdminAction(req) {
+  const path = req.path;
+  const { tests, resources, locked, complete } = req.body || {};
+  const dayMatch = path.match(/^\/round-days\/(Day%20\d+|Day\s\d+)\/(access|complete)$/i);
+  const day = dayMatch ? decodeURIComponent(dayMatch[1]) : '';
+  if (path === '/access' && typeof tests === 'boolean') return `${tests ? 'Opened' : 'Closed'} tests for selected teams`;
+  if (path === '/access' && typeof resources === 'boolean') return `${resources ? 'Opened' : 'Closed'} resources for selected teams`;
+  if (dayMatch?.[2] === 'access' && typeof locked === 'boolean') return `${locked ? 'Closed' : 'Opened'} tests for ${day}`;
+  if (dayMatch?.[2] === 'complete' && typeof complete === 'boolean') return `${complete ? 'Completed' : 'Reopened'} ${day}`;
+  if (/^\/rounds\/[^/]+\/access$/.test(path) && typeof locked === 'boolean') return `${locked ? 'Closed' : 'Opened'} tests for selected round`;
+  const timerMatch = path.match(/^\/timer\/([a-z-]+)$/);
+  if (timerMatch) return `Timer: ${timerMatch[1]}`;
+  const method = { POST: 'Created', PUT: 'Updated', PATCH: 'Updated', DELETE: 'Deleted' }[req.method] || req.method;
+  const section = path.split('/').filter(Boolean)[0] || 'admin settings';
+  return `${method} ${section}`;
+}
+
+r.use((req, res, next) => {
+  if (!['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method)) return next();
+  res.on('finish', () => {
+    if (res.statusCode < 200 || res.statusCode >= 300) return;
+    AdminHistory.create({ admin: req.user.id, action: describeAdminAction(req), detail: `${req.method} ${req.path}` })
+      .catch((error) => console.error('Failed to record admin history:', error.message));
+  });
+  next();
+});
+
+r.get('/history', h(async (req, res) => {
+  const filter = {};
+  const start = new Date(req.query.start);
+  const end = new Date(req.query.end);
+  if (Number.isFinite(start.getTime()) && Number.isFinite(end.getTime()) && start < end) {
+    filter.createdAt = { $gte: start, $lt: end };
+  }
+  const events = await AdminHistory.find(filter).populate('admin', 'username').sort({ createdAt: -1 }).limit(500).lean();
+  res.json(events.map((event) => ({
+    id: event._id,
+    action: event.action,
+    detail: event.detail,
+    admin: event.admin?.username || 'Unknown admin',
+    timestamp: event.createdAt,
+  })));
+}));
 
 const sortRounds = { order: 1, createdAt: 1 };
 const sameId = (a, b) => String(a) === String(b);
@@ -229,8 +273,8 @@ function normalizeTeamMembers(raw) {
     return { name, role };
   }).filter((entry) => entry.name);
 
-  if (normalized.length !== 3) throw httpError(400, 'A team must have exactly 3 members');
-  if (new Set(normalized.map((member) => member.role)).size !== IDENTITY_ROLES.length) {
+  if (!normalized.some((member) => member.role === IDENTITY_ROLES[0])) throw httpError(400, 'A team must include a VISION LEAD');
+  if (new Set(normalized.map((member) => member.role)).size !== normalized.length) {
     throw httpError(400, 'Assign one person to each identity role');
   }
   return normalized;
@@ -325,7 +369,7 @@ r.post('/teams', h(async (req, res) => {
   if (!name || !String(name).trim()) throw httpError(400, 'Team name is required');
   const pw = checkPassword(password);
   const list = normalizeTeamMembers(members);
-  if (new Set(list.map((member) => member.role)).size !== IDENTITY_ROLES.length) throw httpError(400, 'Assign one person to each identity role');
+  if (new Set(list.map((member) => member.role)).size !== list.length) throw httpError(400, 'Assign one person to each identity role');
 
   const generatedTeamId = String(teamId || `TNV-${Date.now().toString().slice(-6)}`).trim();
   if (await Team.findOne({ teamId: generatedTeamId })) throw httpError(409, 'That team ID is already in use');
@@ -385,7 +429,7 @@ r.put('/access', h(async (req, res) => {
 r.put('/round-days/:day/access', h(async (req, res) => {
   const day = decodeURIComponent(req.params.day);
   const { locked } = req.body;
-  if (!['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5'].includes(day)) throw httpError(400, 'Invalid round day');
+  if (!/^Day ([1-9]|10)$/.test(day)) throw httpError(400, 'Invalid round day');
   if (typeof locked !== 'boolean') throw httpError(400, 'Locked must be a boolean');
   const result = await Round.updateMany({ day }, { $set: { isLocked: locked } });
   res.json({ updated: result.matchedCount });
@@ -394,7 +438,7 @@ r.put('/round-days/:day/access', h(async (req, res) => {
 r.put('/round-days/:day/complete', h(async (req, res) => {
   const day = decodeURIComponent(req.params.day);
   const { complete } = req.body;
-  if (!['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5'].includes(day)) throw httpError(400, 'Invalid round day');
+  if (!/^Day ([1-9]|10)$/.test(day)) throw httpError(400, 'Invalid round day');
   if (typeof complete !== 'boolean') throw httpError(400, 'Complete must be a boolean');
   const set = { isDayComplete: complete };
   if (complete) set.isLocked = true;
@@ -675,9 +719,12 @@ r.post('/central-resources', upload.single('file'), h(async (req, res) => {
   const fail = (msg) => { if (file) removeFile(file.filename); throw httpError(400, msg); };
   const { type, category } = req.body;
   const url = String(req.body.url || '').trim();
+  const problemUrl = String(req.body.problemUrl || '').trim();
+  const description = String(req.body.description || '').trim();
   const title = String(req.body.title || '').trim();
   if (!['pdf', 'document', 'link'].includes(type)) fail('Choose a resource type');
   if (!['test', 'shared'].includes(category)) fail('Choose Test or Shared resources');
+  if (problemUrl && !isHttpUrl(problemUrl)) fail('Problem link must start with http:// or https://');
 
   let doc;
   if (type === 'link') {
@@ -688,7 +735,7 @@ r.post('/central-resources', upload.single('file'), h(async (req, res) => {
     if (type === 'pdf' && path.extname(file.originalname).toLowerCase() !== '.pdf') fail('The file must be a PDF');
     doc = { url: `/uploads/${file.filename}`, type, title: title || file.originalname, fileName: file.originalname, storedName: file.filename };
   }
-  const resource = await CentralResource.create({ ...doc, category, isReleased: category === 'shared' });
+  const resource = await CentralResource.create({ ...doc, category, description, problemUrl, isReleased: category === 'shared' });
   res.status(201).json(resource);
 }));
 

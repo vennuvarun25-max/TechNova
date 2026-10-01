@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { api } from '../../api.js';
 import { Alert, ConfirmModal } from '../../components.jsx';
 
-const ROUND_DAYS = ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5'];
+const ROUND_DAYS = Array.from({ length: 10 }, (_, index) => `Day ${index + 1}`);
 const emptyForm = { name: '', day: 'Day 1', order: 0, description: '', instructions: '' };
 
 export default function AdminRounds() {

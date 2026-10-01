@@ -40,16 +40,18 @@ export default function StudentCentralResources() {
                 <Badge tone={item.category === 'test' ? 'red' : 'blue'}>{item.category === 'test' ? 'Test Resource' : 'Shared Resource'}</Badge>
               </div>
               <h3>{item.title}</h3>
+              {item.description && <p className="muted pre">{item.description}</p>}
               {item.roundName && <small className="muted">{item.day} · {item.roundName}</small>}
-              <div className="row">
+              <div className="row wrap central-resource-actions">
                 {item.type === 'link' ? (
-                  <a className="btn res small" href={item.url} target="_blank" rel="noopener noreferrer">Open link</a>
+                  <a className="btn res small" href={item.url} target="_blank" rel="noopener noreferrer">Open Link</a>
                 ) : (
                   <>
-                    <a className="btn res small" href={fileUrl(item.url)} target="_blank" rel="noopener noreferrer">View</a>
-                    <a className="btn secondary small" href={fileUrl(item.url, true)}>Download</a>
+                    <a className="btn res small" href={fileUrl(item.url)} target="_blank" rel="noopener noreferrer">{item.type === 'pdf' ? 'Open PDF' : 'Open Document'}</a>
+                    <a className="btn secondary small" href={fileUrl(item.url, true)}>Download {item.type === 'pdf' ? 'PDF' : 'Document'}</a>
                   </>
                 )}
+                {item.problemUrl && <a className="btn secondary small" href={item.problemUrl} target="_blank" rel="noopener noreferrer">Problem Link</a>}
               </div>
             </article>
           ))}

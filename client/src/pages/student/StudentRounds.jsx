@@ -3,7 +3,7 @@ import { usePoll } from '../../hooks.js';
 import { Alert, Badge } from '../../components.jsx';
 
 const TONE = { 'Not started': 'gray', 'In progress': 'amber', Completed: 'green' };
-const ROUND_DAYS = ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5'];
+const ROUND_DAYS = Array.from({ length: 10 }, (_, index) => `Day ${index + 1}`);
 
 export default function StudentRounds() {
   const rounds = usePoll('/student/rounds', 10000);

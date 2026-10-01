@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { api, fileUrl } from '../../api.js';
 import { Alert, Badge, ConfirmModal } from '../../components.jsx';
 
-const emptyForm = { title: '', type: 'pdf', category: 'test', url: '' };
+const emptyForm = { title: '', description: '', type: 'pdf', category: 'test', url: '', problemUrl: '' };
 const RES_LABEL = { pdf: 'PDF', document: 'Document', link: 'Link' };
 const CATEGORY_LABEL = { test: 'Test resource', shared: 'Shared resource' };
 
@@ -24,8 +24,10 @@ export default function AdminCentralResources() {
     setSuccess('');
     const body = new FormData();
     body.append('title', form.title);
+    body.append('description', form.description);
     body.append('type', form.type);
     body.append('category', form.category);
+    body.append('problemUrl', form.problemUrl);
     if (form.type === 'link') body.append('url', form.url);
     else if (file) body.append('file', file);
     try {
@@ -75,6 +77,9 @@ export default function AdminCentralResources() {
           <label>Title
             <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Resource title" />
           </label>
+          <label>Description <span className="muted">(optional)</span>
+            <textarea rows="2" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Add details about this resource" />
+          </label>
           <label>Category
             <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}>
               <option value="test">Test Resources</option>
@@ -97,6 +102,9 @@ export default function AdminCentralResources() {
               <input key={fileKey} type="file" accept={form.type === 'pdf' ? '.pdf,application/pdf' : undefined} onChange={(e) => setFile(e.target.files[0] || null)} required />
             </label>
           )}
+          <label>Problem Link <span className="muted">(optional)</span>
+            <input type="url" value={form.problemUrl} onChange={(e) => setForm({ ...form, problemUrl: e.target.value })} placeholder="https://" />
+          </label>
         </div>
         <button className="btn">Add resource</button>
         <small className="muted">Test Resources are locked when added. Release them after the test; Shared Resources are available immediately.</small>
@@ -114,6 +122,8 @@ export default function AdminCentralResources() {
                   {item.type === 'link'
                     ? <a href={item.url} target="_blank" rel="noopener noreferrer">{item.title}</a>
                     : <a href={fileUrl(item.url)} target="_blank" rel="noopener noreferrer">{item.title}</a>}
+                  {item.description && <div className="muted">{item.description}</div>}
+                  {item.problemUrl && <div className="muted">Problem link added</div>}
                   {item.category === 'test' && <small className="muted">{item.isReleased ? 'Released' : 'Locked'}</small>}
                 </div>
                 <span className="row">

@@ -1,11 +1,15 @@
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
-import { Admin, Team, Member, TeamMember } from '../models/index.js';
+import { Admin, AdminHistory, Team, Member, TeamMember } from '../models/index.js';
 import { auth, signToken } from '../middleware/auth.js';
 import { h, httpError } from '../utils/helpers.js';
 
 const r = Router();
 const CI = { locale: 'en', strength: 2 }; // case-insensitive team names
+
+async function recordAdminLogin(admin) {
+  await AdminHistory.create({ admin: admin._id, action: 'Admin login', detail: `${admin.username} logged in` });
+}
 
 r.post('/admin-login', h(async (req, res) => {
   const { username, password } = req.body;
@@ -14,6 +18,7 @@ r.post('/admin-login', h(async (req, res) => {
   if (!admin || !(await bcrypt.compare(String(password), admin.passwordHash))) {
     throw httpError(401, 'Invalid username or password');
   }
+  await recordAdminLogin(admin);
   res.json({ token: signToken({ id: admin._id, role: 'admin' }), user: { role: 'admin', name: admin.username } });
 }));
 
@@ -24,6 +29,7 @@ r.post('/admin-login/hidden', h(async (req, res) => {
   if (!admin || !(await bcrypt.compare(String(password), admin.passwordHash))) {
     throw httpError(401, 'Invalid username or password');
   }
+  await recordAdminLogin(admin);
   res.json({ token: signToken({ id: admin._id, role: 'admin' }), user: { role: 'admin', name: admin.username } });
 }));
 
