@@ -84,6 +84,10 @@ The API listens on port `5000` by default and Vite serves the client at `http://
 
 Open `http://localhost:5173/login` to sign in with a team ID/name and that team's password. Open `http://localhost:5173/admin-login` for the admin login.
 
+Demo team login credentials:
+- Team name: `Blast`
+- Password: `Blast123`
+
 The first server startup creates the admin account if none exists. The values in `ADMIN_USERNAME` and `ADMIN_PASSWORD` are used only for that initial creation; changing them later does not change an existing admin account. Use the admin UI to manage teams and their shared team login passwords.
 
 ## Environment variables

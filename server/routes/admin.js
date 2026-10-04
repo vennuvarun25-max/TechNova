@@ -833,7 +833,8 @@ r.get('/completions', h(async (req, res) => {
     $or: PROFILE_FIELDS.map((field) => ({ [field]: { $ne: '' } })),
   }).populate('team', 'name').lean();
 
-  const profileAwardTeams = await XPTransaction.find({ reason: /profile/i }).distinct('team');
+  const profileAwards = await XPTransaction.find({ reason: /profile/i }).select('team amount').lean();
+  const profileAwardMap = new Map(profileAwards.map((award) => [String(award.team), award.amount]));
   const profileMap = new Map();
   for (const member of profileLinks) {
     const teamId = String(member.team?._id || '');
@@ -858,8 +859,8 @@ r.get('/completions', h(async (req, res) => {
 
   const profileRecords = [...profileMap.values()].map((record) => ({
     ...record,
-    verified: profileAwardTeams.some((teamId) => String(teamId) === String(record.teamId)),
-    points: profileAwardTeams.some((teamId) => String(teamId) === String(record.teamId)) ? 10 : null,
+    verified: profileAwardMap.has(String(record.teamId)),
+    points: profileAwardMap.get(String(record.teamId)) ?? null,
   }));
 
   const completionRecords = list.filter((c) => c.team && c.task && c.round).map((c) => ({
@@ -891,18 +892,18 @@ r.post('/completions/profile/:teamId/verify', h(async (req, res) => {
 
   const existing = await XPTransaction.findOne({ team: teamId, reason: /profile/i });
   if (existing) {
-    return res.json({ ok: true, alreadyVerified: true, points: 10 });
+    return res.json({ ok: true, alreadyVerified: true, points: existing.amount });
   }
 
   await XPTransaction.create({
     transactionId: `PROFILE-${String(teamId)}-${Date.now()}`,
     team: teamId,
-    amount: 10,
+    amount: 30,
     type: 'award',
     reason: 'Profile link approval for team',
   });
 
-  res.json({ ok: true, points: 10 });
+  res.json({ ok: true, points: 30 });
 }));
 
 r.post('/completions/profile/:teamId/unverify', h(async (req, res) => {

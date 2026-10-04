@@ -62,6 +62,8 @@ export default function AdminXPManagement() {
           reason: reason.trim() || 'Manual XP update',
         },
       });
+      const updatedMembers = await api(`/admin/xp/team/${teamId}/members`);
+      setMembers(Array.isArray(updatedMembers) ? updatedMembers : []);
       setOk(action === 'add' ? 'XP added to the member.' : 'XP deducted from the member.');
       setReason('');
       setAmount('50');
@@ -90,7 +92,7 @@ export default function AdminXPManagement() {
           <label>
             Member
             <select value={memberId} onChange={(e) => setMemberId(e.target.value)}>
-              {members.map((member) => <option key={member._id} value={member._id}>{member.fullName}</option>)}
+              {members.map((member) => <option key={member._id} value={member._id}>{member.fullName} ({member.individualXp || 0} XP)</option>)}
             </select>
           </label>
         </div>

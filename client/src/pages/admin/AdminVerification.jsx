@@ -33,7 +33,7 @@ function Row({ c, onDone, onError }) {
         <td>{new Date(c.completedAt).toLocaleString()}</td>
         <td>{c.verified ? <Badge tone="green">XP awarded</Badge> : <Badge tone="amber">Ready</Badge>}</td>
         <td className="actions">
-          <span className="muted">{c.points ?? 10} XP</span>
+          <span className="muted">{c.points ?? 30} XP</span>
           {c.verified ? (
             <button className="btn small secondary" disabled={busy} onClick={() => profileAct('unverify')}>Unverify</button>
           ) : (
